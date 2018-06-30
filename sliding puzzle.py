@@ -71,24 +71,24 @@ class slider:
 
 
 	def find_index(self, direction):
-		if(direction == "down"):
-			return (self.index[0], self.index[1] -1)
-		if(direction == "up"):
-			return (self.index[0], self.index[1] +1)
 		if(direction == "right"):
-			return (self.index[0] -1, self.index[1])
+			return (self.index[0], self.index[1] -1)
 		if(direction == "left"):
+			return (self.index[0], self.index[1] +1)
+		if(direction == "down"):
+			return (self.index[0] -1, self.index[1])
+		if(direction == "up"):
 			return (self.index[0] +1, self.index[1])
 
 
 	def check(self, direction):
-		if(direction == "down"):
-			return (self.index[1] == 0)
-		if(direction == "up"):
-			return (self.index[1] == grid-1)
 		if(direction == "right"):
-			return (self.index[0] == 0)
+			return (self.index[1] == 0)
 		if(direction == "left"):
+			return (self.index[1] == grid-1)
+		if(direction == "down"):
+			return (self.index[0] == 0)
+		if(direction == "up"):
 			return (self.index[0] == grid-1)
 
 
@@ -97,11 +97,7 @@ tab_mat = None
 slide = None
 def initiate():
 	global tab_mat, slide, screen, start_x, start_y, step, tab_dimension
-
-	#creating screen
-	screen = pygame.display.set_mode((width, height))
-	pygame.display.set_caption("Sliding Puzzle")
-
+	print("Initiating board...\n\n")
 	#creating tabs
 	tab_seq = list(range(1, grid*grid + 1))
 	shuffle(tab_seq)
@@ -120,24 +116,48 @@ def initiate():
 	end_y = board_dimension + start[1]
 	step = tab_dimension + 2*border
 
+	#creating screen
+	screen = pygame.display.set_mode((width, height))
+	pygame.display.set_caption("Sliding Puzzle")
+
+
+
 def valid(seq):
+	valid = False
+	#print (seq)
+	x = seq.index(grid*grid)
+	del(seq[x])
+	#print(x, seq)
+
 	inversion = 0
-	print (seq)
 	for i in range(len(seq)):
 		for j in range(i+1,len(seq)):
 			if seq[i] > seq[j]:
 				inversion += 1
-				print(seq[i], seq[j])
-	x = seq.index(grid*grid)
-	if inversion%2 == 1:
+				#print(seq[i], seq[j])
+	#print(inversion)
+	
+	if grid%2 ==1:
+		if inversion%2 == 0:
+			valid = True
+	else:
+		if inversion%2 == 1 and (x//grid)%2 == 0:
+			valid = True
+		elif inversion%2 == 0 and (x//grid)%2 == 1:
+			valid = True
+
+	#print(inversion, x//grid, valid)
+	if not valid:
+		print("...")
 		y = x 
 		while (y == x or y == x-1):
 			y = randrange(len(seq)-1)
+			print("....")
 		seq[y], seq[y+1] = seq[y+1], seq[y]
-		print(y)
+		#print(y)
 	#print (inversion)
-	seq[x] = 0
-	print(seq)
+	seq.insert(x, 0)
+	#print(seq)
 	return seq, x
 
 def update_board():
@@ -161,7 +181,7 @@ def gameloop():
 				quit()
 			if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
 				pygame.display.quit()
-				quit()
+				return 0
 			if event.type == pygame.KEYDOWN and event.key == pygame.K_n:
 				pygame.display.quit()
 				return 0
@@ -180,7 +200,7 @@ while True:
 	except:
 		grid = 4
 	gameloop()
-# print([[i.index for i in j] for j in tab_mat])
-# print([[i.value for i in j] for j in tab_mat])
+	# print([[i.index for i in j] for j in tab_mat])
+	# print([[i.value for i in j] for j in tab_mat])
 # print(start_x, start_y)
 # print(end_x, end_y)

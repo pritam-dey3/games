@@ -18,7 +18,7 @@ g = 0.5
 
 pygame.init()
 screen = pygame.display.set_mode((width,height))
-pygame.display.set_caption('Testing')
+pygame.display.set_caption('MyFirstGame')
 clock = pygame.time.Clock()
 
 class Circle:
@@ -82,10 +82,12 @@ def gameloop():
         clock.tick(70)
         for event in pygame.event.get():
             if event.type == QUIT:
-                Quit = True
+                pygame.quit()
+                quit()
             if event.type == KEYDOWN and event.key == K_ESCAPE:
-                running = False
-    return (score,Quit)
+                pygame.quit()
+                quit()
+    return score
 
 
 def text_objects(text, font):
@@ -106,11 +108,9 @@ def message(text):
 if __name__ == '__main__':
     Quit = False
     while (not Quit):
-        (score,Quit) = gameloop()
-        if(not Quit):
-            message("Your score: "+str(score))
+        score = gameloop()
+        message("Your score: "+str(score))
 
-    pygame.display.quit()
 
 
 
