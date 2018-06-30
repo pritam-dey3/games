@@ -30,27 +30,36 @@ class tab:
 	def __init__(self, index, value = 0):
 		self.index = index
 		self.value = value
+		self.rect = None
+
+		font = pygame.font.SysFont(None, int(tab_dimension/2))
+		self.textSurf = font.render(str(self.value), True, WHITE)
+		self.textRect = self.textSurf.get_rect()
+
 	def update(self):
-		pygame.draw.rect(screen, tab_color,
+		self.rect = pygame.draw.rect(screen, tab_color,
 							(start_x + self.index[1]*step, start_y + self.index[0]*step,
 							tab_dimension, tab_dimension))
-		self.write()
-	def write(self):
-		font = pygame.font.SysFont(None, int(tab_dimension/2))
-		textSurf = font.render(str(self.value), True, WHITE)
-		textRect = textSurf.get_rect()
-		textRect.center = (start_x + self.index[1]*step + int(tab_dimension/2), start_y + self.index[0]*step + int(tab_dimension/2))
-		screen.blit(textSurf, textRect)
-		pygame.display.update()
+
+		self.textRect.center = (start_x + self.index[1]*step + int(tab_dimension/2), start_y + self.index[0]*step + int(tab_dimension/2))
+		screen.blit(self.textSurf, self.textRect)
+		pygame.display.update([self.rect, self.textRect])
+
+		if (self.index[0]*grid + self.index[1] + 1) == self.value:
+			tab_seq[self.index[0]*grid + self.index[1]] = 1
+		else:
+			tab_seq[self.index[0]*grid + self.index[1]] = 0
 
 class slider:
 	def __init__(self, index):
 		self.index = index
 		self.value = 0
+		self.rect = None
 	def update(self):
-		pygame.draw.rect(screen, bg_color,
+		self.rect = pygame.draw.rect(screen, bg_color,
 							(start_x + self.index[1]*step, start_y + self.index[0]*step,
 							tab_dimension, tab_dimension))
+		pygame.display.update(self.rect)
 	def move(self, direction):
 		if(self.check(direction)):
 			print("end")
@@ -67,9 +76,7 @@ class slider:
 			tab_mat[indexB[0]][indexB[1]] = temp
 
 			update_board()
-			pygame.display.update()
-
-
+			
 	def find_index(self, direction):
 		if(direction == "right"):
 			return (self.index[0], self.index[1] -1)
@@ -79,7 +86,6 @@ class slider:
 			return (self.index[0] -1, self.index[1])
 		if(direction == "up"):
 			return (self.index[0] +1, self.index[1])
-
 
 	def check(self, direction):
 		if(direction == "right"):
@@ -92,21 +98,11 @@ class slider:
 			return (self.index[0] == grid-1)
 
 
-
 tab_mat = None
 slide = None
 def initiate():
-	global tab_mat, slide, screen, start_x, start_y, step, tab_dimension
-	print("Initiating board...\n\n")
-	#creating tabs
-	tab_seq = list(range(1, grid*grid + 1))
-	shuffle(tab_seq)
-	tab_seq, slider_i = valid(tab_seq)
-	#tab_seq += [0]
-	tab_mat = [[tab((int(j/grid), i), val) for i,val in  enumerate(tab_seq[j:j+grid])] for j in range(0, len(tab_seq), grid)]
-	slide = slider((slider_i//grid, slider_i%grid))
-	tab_mat[slider_i//grid][slider_i%grid] = slide
-
+	global tab_mat, slide, screen, start_x, start_y, step, tab_dimension, tab_seq
+	
 	#calculation for drawing squares
 	tab_dimension = int(board_dimension/grid) - 2*border
 	start = (int((width - board_dimension)/2), int((height - board_dimension)/2))
@@ -116,10 +112,19 @@ def initiate():
 	end_y = board_dimension + start[1]
 	step = tab_dimension + 2*border
 
+	print("Initiating board...")
+	#creating tabs
+	tab_seq = list(range(1, grid*grid + 1))
+	shuffle(tab_seq)
+	tab_seq, slider_i = valid(tab_seq)
+	#tab_seq += [0]
+	tab_mat = [[tab((int(j/grid), i), val) for i,val in  enumerate(tab_seq[j:j+grid])] for j in range(0, len(tab_seq), grid)]
+	slide = slider((slider_i//grid, slider_i%grid))
+	tab_mat[slider_i//grid][slider_i%grid] = slide
+
 	#creating screen
 	screen = pygame.display.set_mode((width, height))
 	pygame.display.set_caption("Sliding Puzzle")
-
 
 
 def valid(seq):
@@ -193,7 +198,27 @@ def gameloop():
 				slide.move("down")
 			if event.type == pygame.KEYDOWN and event.key == pygame.K_LEFT:
 				slide.move("left")
-		
+		if (sum(tab_seq[:-1]) == grid*grid -1):
+			print("\n\n\nWow! You solved it.\n\n")
+			break
+	while True:	
+		font = pygame.font.SysFont(None, 100)
+		textSurf = font.render("Good Job!", True, BLACK)
+		textRect = textSurf.get_rect()
+		textRect.center = (width//2, height//2)
+		screen.blit(textSurf, textRect)
+		pygame.display.update()
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				pygame.display.quit()
+				quit()
+			if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+				pygame.display.quit()
+				return 0
+			if event.type == pygame.KEYDOWN and event.key == pygame.K_n:
+				pygame.display.quit()
+				return 0
+
 while True:
 	try:
 		grid = int(input("enter dimension: ")[0])
